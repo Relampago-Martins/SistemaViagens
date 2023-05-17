@@ -62,6 +62,26 @@ public class ListaDeReservas {
         }
     	return null;
     }
+
+    public Reserva[] reservasDoCliente2 (String cpf){
+        int countReservas = 0, i;
+        for (Reserva reserva: this.reservas){
+            if (reserva.getCliente().getCpf().equals(cpf)){
+                countReservas++;
+            }
+        }
+        Reserva[] resrvasCli = new Reserva[countReservas];
+        i=0;
+        for (Reserva reserva: this.reservas){
+            if (reserva.getCliente().getCpf().equals(cpf)){
+                resrvasCli[i++] = reserva;
+            }
+        }
+        if (countReservas != 0){
+            return resrvasCli;
+        }
+        return null;
+    }
     
     public ArrayList<Reserva> reservasDoDestino(String Destino){
         ArrayList<Reserva> reservasDestino = new ArrayList<>();
