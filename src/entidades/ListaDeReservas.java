@@ -1,8 +1,7 @@
 package entidades;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
-
+import excecoes.ExcecaoDeListaCheia;
 
 /**
  * Classe wrapper para a lista de reserva.
@@ -32,13 +31,12 @@ public class ListaDeReservas {
      * @return retorna true se a reserva foi incluída sem problemas e
      * false se a capacidade da lista estava esgotada
      */
-	public boolean incluirReserva(Reserva reserva) {
+	public void incluirReserva(Reserva reserva) throws ExcecaoDeListaCheia{
 		if (this.reservas.size() < capacidade && reserva != null ) {
 			this.reservas.add(reserva);
-			return true;
+			return;
 		}
-		
-		return false;
+        throw new ExcecaoDeListaCheia("Lista de reservas cheia");
 	}
 	
     /**

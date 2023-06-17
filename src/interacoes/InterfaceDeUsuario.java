@@ -2,19 +2,24 @@ package interacoes;
 
 import java.util.Scanner;
 import java.util.ArrayList;
+import java.util.List;
 
 import entidades.ListaDeReservas;
 import entidades.Cliente;
 import entidades.Reserva;
-
+import excecoes.ExcecaoDeListaCheia;
+import persistencia.IOManager;
+import persistencia.ObjectIOManager;
 
 public class InterfaceDeUsuario {
 	Scanner leitor = new Scanner(System.in);
+	IOManager ioManager = new ObjectIOManager();
 	enum Menu{
 		CRIAR_CLIENTE, CRIAR_RESERVA, DESTINOS_CLIENTE, 
-		PRECO_TOTAL_DESTINO, DEFAULT
+		PRECO_TOTAL_DESTINO, LISTAR_CLIENTES, DEFAULT
 	}
-	ArrayList<Cliente> clientes= new ArrayList<>();
+
+	List<Cliente> clientes= ioManager.loadClientes();
 	ListaDeReservas reservas= new ListaDeReservas(30);
 	
 	public void rodarMenu() {
@@ -34,8 +39,12 @@ public class InterfaceDeUsuario {
 			case PRECO_TOTAL_DESTINO:
 				this.precoTotalDestino();
 				break;
+			case LISTAR_CLIENTES:
+				this.listarClientes();
+				break;
 			default:
 				continuar = false;
+				this.ioManager.dumpClientes(this.clientes);
 				System.out.println("Encerrando ...");
 				break;
 			}
@@ -49,6 +58,7 @@ public class InterfaceDeUsuario {
 						"  (2) Cadastrar reservas\n"+
 						"  (3) Listar os destinos das reservas de um determinado Cliente\n"+
 						"  (4) Informar o preço total das reservas de um destino\n"+
+						"  (5) Listar os clientes cadastrados\n"+
 						"  (Outros) Encerrar programa"
 						);
 		int opcao = this.leitor.nextInt();
@@ -74,31 +84,29 @@ public class InterfaceDeUsuario {
 			System.out.println("Cliente criado com sucesso!");
 	}
 	
-	public boolean criarReserva() {
+	public void criarReserva() {
 		Cliente clienteFind = this.getInputCliente();
-		boolean retorno = false;
 
-		if (clienteFind != null) {
-			System.out.print("Destino: ");
-			String destino = this.leitor.nextLine();
-			System.out.print("Preço: ");
-			double preco = this.leitor.nextDouble();
-			this.leitor.nextLine();
-			
-			 retorno = this.reservas.incluirReserva(
-					new Reserva(clienteFind, destino, preco));
-			
-			if (retorno) {
-				System.out.println("Reserva Criada com sucesso!");
-			}else {
-				System.out.println("Problema ao criar reserva.");
-			}
-			
-		}else {
+		if (clienteFind == null) {
 			System.out.println("Cliente não encontrado. Operação cancelada.");			
+		}else{
+			try{
+				System.out.print("Destino: ");
+				String destino = this.leitor.nextLine();
+				System.out.print("Preço: ");
+				double preco = this.leitor.nextDouble();
+				this.leitor.nextLine();
+
+				this.reservas.incluirReserva(
+					   new Reserva(clienteFind, destino, preco));
+				System.out.println("Reserva Criada com sucesso!");
+
+			}catch(ExcecaoDeListaCheia e){
+				System.out.printf("Erro: %s\n", e.getMessage());
+			} finally {
+				System.out.println("Operação cancelada. Tente novamente");
+			}
 		}
-		
-		return retorno;
 	}
 	
 	public void destinosCliente() {
@@ -130,6 +138,13 @@ public class InterfaceDeUsuario {
 			}
 		}
 		System.out.printf("  %.2f reais\n", taltalPreco);
+	}
+
+	public void listarClientes(){
+		System.out.println("Clientes cadastrados: ");
+		for(Cliente cliente: this.clientes){
+			System.out.printf("  %s - %s\n", cliente.getNome(), cliente.getCpf());
+		}
 	}
 	
 	public Cliente getInputCliente() {
